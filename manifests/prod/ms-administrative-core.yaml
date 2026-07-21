@@ -2,7 +2,7 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: ms-administrative-core-ingress-prod
-  namespace: prod
+  namespace: production
   annotations:
     kubernetes.io/ingress.class: "kong"
     konghq.com/plugins: "api-key-auth"
