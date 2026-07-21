@@ -1,0 +1,10 @@
+apiVersion: configuration.konghq.com/v1
+kind: KongPlugin
+metadata:
+  name: api-key-auth
+  namespace: default # O mesmo namespace do seu serviço Java
+plugin: key-auth
+config:
+  key_in_header: true
+  key_names:
+    - apikey
