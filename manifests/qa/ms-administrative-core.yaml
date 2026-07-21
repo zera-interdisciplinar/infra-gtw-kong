@@ -8,6 +8,7 @@ metadata:
     konghq.com/plugins: "api-key-auth"
     konghq.com/strip-path: "true"         # <--- Remove o prefixo '/qa' antes de enviar para a API!
 spec:
+  ingressClassName: kong                # <--- ADICIONE ESTA LINHA AQUI!
   rules:
   - http:
       paths:
