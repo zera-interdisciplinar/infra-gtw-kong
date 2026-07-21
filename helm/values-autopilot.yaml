@@ -24,3 +24,6 @@ proxy:
 # Desabilita o Enterprise / Postgres se for usar o modo DB-less (mais simples e rápido)
 env:
   database: "off"
+  proxy_listen: "0.0.0.0:8000, 0.0.0.0:8443 ssl"
+  status_listen: "0.0.0.0:8100"
+  admin_listen: "127.0.0.1:8444 ssl"
