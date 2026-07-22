@@ -6,16 +6,16 @@ metadata:
   annotations:
     kubernetes.io/ingress.class: "kong"
     konghq.com/plugins: "api-key-auth"
-    konghq.com/strip-path: "true"         # <--- Remove o prefixo '/qa' antes de enviar para a API!
+    konghq.com/strip-path: "true"
 spec:
-  ingressClassName: kong                # <--- ADICIONE ESTA LINHA AQUI!
+  ingressClassName: kong
   rules:
   - http:
       paths:
-      - path: /qa                         # Tudo que começar com /qa
+      - path: /qa
         pathType: Prefix
         backend:
           service:
             name: ms-administrative-core
             port:
-              number: 8080
+              number: 80

@@ -7,14 +7,14 @@ metadata:
     kubernetes.io/ingress.class: "kong"
     konghq.com/plugins: "api-key-auth"
 spec:
-  ingressClassName: kong                # <--- ADICIONE ESTA LINHA AQUI!
+  ingressClassName: kong
   rules:
   - http:
       paths:
-      - path: /api/v1                    # Mapeia /api/v1 sem alterar o caminho
+      - path: /api/v1
         pathType: Prefix
         backend:
           service:
             name: ms-administrative-core
             port:
-              number: 8080
+              number: 80

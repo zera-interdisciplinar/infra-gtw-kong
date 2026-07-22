@@ -1,8 +1,0 @@
-apiVersion: configuration.konghq.com/v1
-kind: KongConsumer
-metadata:
-  name: mobile-app-consumer
-  namespace: default
-username: mobile-app-consumer
-credentials:
-  - mobile-app-key-auth-secret

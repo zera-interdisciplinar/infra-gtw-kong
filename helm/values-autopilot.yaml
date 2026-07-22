@@ -1,29 +1,27 @@
-# helm/values-autopilot.yaml
-
-# Ingress Controller do Kong
 ingressController:
   enabled: true
-  installCRDs: true
+  installCRDs: false
 
-# Configuração do Proxy do Kong
 proxy:
   enabled: true
   type: LoadBalancer
-  # Anotação opcional para criar um IP estático ou NLB específico no GCP se desejar
   annotations:
     networking.gke.io/load-balancer-type: "External"
-  
   resources:
-  requests:
-    cpu: "100m"     # 0.1 vCPU (suficiente para poucas requisições)
-    memory: "256Mi" # 256 Megabytes
-  limits:
-    cpu: "500m"
-    memory: "512Mi"
+    requests:
+      cpu: "100m"
+      memory: "256Mi"
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
 
-# Desabilita o Enterprise / Postgres se for usar o modo DB-less (mais simples e rápido)
 env:
-  database: "off"
-  proxy_listen: "0.0.0.0:8000, 0.0.0.0:8443 ssl"
-  status_listen: "0.0.0.0:8100"
-  admin_listen: "127.0.0.1:8444 ssl"
+  database: "postgres"
+  pg_host: "postgres.production.svc.cluster.local"
+  pg_database: "kong"
+  pg_user: "kong"
+  pg_password: "kong"
+  admin_listen: "127.0.0.1:8444 http2 ssl"
+
+postgresql:
+  enabled: false

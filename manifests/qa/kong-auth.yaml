@@ -1,0 +1,21 @@
+apiVersion: configuration.konghq.com/v1
+kind: KongPlugin
+metadata:
+  name: api-key-auth
+  namespace: qa
+plugin: key-auth
+config:
+  key_in_header: true
+  key_names:
+    - apikey
+---
+apiVersion: configuration.konghq.com/v1
+kind: KongConsumer
+metadata:
+  name: mobile-app-consumer
+  namespace: qa
+  annotations:
+    kubernetes.io/ingress.class: kong
+username: mobile-app-qa
+credentials:
+  - mobile-app-key-auth-secret
