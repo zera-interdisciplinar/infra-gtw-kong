@@ -1,0 +1,49 @@
+name: Deploy Kong Manifests
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'manifests/**'
+      - 'helm/**'
+
+jobs:
+  deploy:
+    name: Apply Kong Manifests
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: projects/537842934721/locations/global/workloadIdentityPools/zera-pool/providers/github-provider
+          service_account: github-actions-deploy@zera1405.iam.gserviceaccount.com
+
+      - uses: google-github-actions/get-gke-credentials@v2
+        with:
+          cluster_name: autopilot-cluster-1
+          location: us-central1
+
+      - name: Setup Helm
+        uses: azure/setup-helm@v4
+
+      - name: Add Kong Helm repo
+        run: |
+          helm repo add kong https://charts.konghq.com
+          helm repo update
+
+      - name: Upgrade Kong
+        if: contains(github.event.commits[*].modified, 'helm/values-autopilot.yaml') || contains(github.event.commits[*].added, 'helm/values-autopilot.yaml')
+        run: helm upgrade kong kong/kong -n kong -f helm/values-autopilot.yaml --set ingressController.installCRDs=false
+
+      - name: Apply QA manifests
+        run: kubectl apply -f manifests/qa/
+
+      - name: Apply Prod manifests
+        run: kubectl apply -f manifests/prod/
