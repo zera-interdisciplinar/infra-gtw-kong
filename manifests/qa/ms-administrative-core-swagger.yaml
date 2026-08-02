@@ -1,0 +1,27 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ms-administrative-core-swagger-qa
+  namespace: qa
+  annotations:
+    kubernetes.io/ingress.class: "kong"
+    konghq.com/strip-path: "true"
+spec:
+  ingressClassName: kong
+  rules:
+  - http:
+      paths:
+      - path: /qa/administrative/swagger-ui
+        pathType: Prefix
+        backend:
+          service:
+            name: ms-administrative-core
+            port:
+              number: 80
+      - path: /qa/administrative/v3/api-docs
+        pathType: Prefix
+        backend:
+          service:
+            name: ms-administrative-core
+            port:
+              number: 80
