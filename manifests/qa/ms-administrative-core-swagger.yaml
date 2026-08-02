@@ -5,7 +5,7 @@ metadata:
   namespace: qa
   annotations:
     kubernetes.io/ingress.class: "kong"
-    konghq.com/strip-path: "false"
+    konghq.com/strip-path: "true"
 spec:
   ingressClassName: kong
   rules:
@@ -18,7 +18,7 @@ spec:
             name: ms-administrative-core
             port:
               number: 80
-      - path: /qa/administrative/v3/api-docs
+      - path: /qa/administrative/v3
         pathType: Prefix
         backend:
           service:
