@@ -1,0 +1,21 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ms-inventory-ingress-prod
+  namespace: production
+  annotations:
+    kubernetes.io/ingress.class: "kong"
+    konghq.com/plugins: "api-key-auth"
+    konghq.com/strip-path: "true"
+spec:
+  ingressClassName: kong
+  rules:
+  - http:
+      paths:
+      - path: /inventory
+        pathType: Prefix
+        backend:
+          service:
+            name: ms-inventory
+            port:
+              number: 80
