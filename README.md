@@ -21,22 +21,25 @@ mandar `Authorization: Bearer <token>` nas demais chamadas.
 O `KongConsumer administrative-core-issuer` referencia um Secret com a chave pública
 RSA do `ms-administrative-core` (a mesma do Secret `ms-administrative-core-jwt` lá).
 
+O KIC 3.x identifica o tipo da credencial pelo label `konghq.com/credential=jwt`
+(não pelo antigo campo `kongCredType`).
+
 ```sh
 # jwt-public.pem = a chave pública gerada no ms-administrative-core
 
 # QA
 kubectl create secret generic administrative-core-jwt-qa -n qa \
-  --from-literal=kongCredType=jwt \
   --from-literal=algorithm=RS256 \
   --from-literal=key=ms-administrative-core \
   --from-file=rsa_public_key=jwt-public.pem
+kubectl label secret administrative-core-jwt-qa -n qa konghq.com/credential=jwt
 
 # Produção
 kubectl create secret generic administrative-core-jwt-prod -n production \
-  --from-literal=kongCredType=jwt \
   --from-literal=algorithm=RS256 \
   --from-literal=key=ms-administrative-core \
   --from-file=rsa_public_key=jwt-public.pem
+kubectl label secret administrative-core-jwt-prod -n production konghq.com/credential=jwt
 ```
 
 `key` **precisa** ser igual ao claim `iss` do token (`zera.jwt.issuer` no
