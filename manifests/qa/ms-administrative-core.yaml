@@ -1,3 +1,6 @@
+# Rotas de API do ms-administrative-core: exigem JWT de usuario (RS256).
+# As rotas publicas (/api/v1/auth/*, /.well-known/jwks.json) sao servidas pelo
+# Ingress ms-administrative-core-public (regex, prioridade maior).
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -5,7 +8,7 @@ metadata:
   namespace: qa
   annotations:
     kubernetes.io/ingress.class: "kong"
-    konghq.com/plugins: "api-key-auth"
+    konghq.com/plugins: "jwt-auth"
     konghq.com/strip-path: "true"
 spec:
   ingressClassName: kong
@@ -14,6 +17,33 @@ spec:
       paths:
       - path: /qa/administrative
         pathType: Prefix
+        backend:
+          service:
+            name: ms-administrative-core
+            port:
+              number: 80
+---
+# Rotas publicas (sem JWT): login/refresh/logout e a chave publica JWKS.
+# A regex casa e remove apenas o prefixo /qa/administrative (lookahead nao consome),
+# entao o backend recebe /api/v1/auth/... e /.well-known/jwks.json intactos.
+# api-key-auth mantem o gate de "app conhecido"; auth-rate-limit protege o login.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ms-administrative-core-public-qa
+  namespace: qa
+  annotations:
+    kubernetes.io/ingress.class: "kong"
+    konghq.com/plugins: "api-key-auth,auth-rate-limit"
+    konghq.com/strip-path: "true"
+    konghq.com/regex-priority: "1000"
+spec:
+  ingressClassName: kong
+  rules:
+  - http:
+      paths:
+      - path: /~/qa/administrative(?=/(api/v1/auth|\.well-known/jwks\.json))
+        pathType: ImplementationSpecific
         backend:
           service:
             name: ms-administrative-core
