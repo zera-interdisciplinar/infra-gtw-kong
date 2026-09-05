@@ -1,0 +1,37 @@
+# Validacao de JWT (RS256) emitido pelo ms-administrative-core.
+# A chave publica vive no Secret `administrative-core-jwt-qa` (criado manualmente,
+# ver README) referenciado pelo KongConsumer abaixo. O plugin casa o claim `iss`
+# do token com o campo `key` da credencial.
+apiVersion: configuration.konghq.com/v1
+kind: KongPlugin
+metadata:
+  name: jwt-auth
+  namespace: qa
+plugin: jwt
+config:
+  key_claim_name: iss
+  claims_to_verify:
+    - exp
+  run_on_preflight: false
+---
+apiVersion: configuration.konghq.com/v1
+kind: KongConsumer
+metadata:
+  name: administrative-core-issuer
+  namespace: qa
+  annotations:
+    kubernetes.io/ingress.class: kong
+username: administrative-core-issuer-qa
+credentials:
+  - administrative-core-jwt-qa
+---
+# Rate limit aplicado apenas nas rotas publicas de /auth (anti brute-force no login).
+apiVersion: configuration.konghq.com/v1
+kind: KongPlugin
+metadata:
+  name: auth-rate-limit
+  namespace: qa
+plugin: rate-limiting
+config:
+  minute: 20
+  policy: local
