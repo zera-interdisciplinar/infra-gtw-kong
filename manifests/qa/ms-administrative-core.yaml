@@ -1,6 +1,6 @@
 # Rotas de API do ms-administrative-core: exigem JWT de usuario (RS256).
-# As rotas publicas (/api/v1/auth/*, /.well-known/jwks.json) sao servidas pelo
-# Ingress ms-administrative-core-public (regex, prioridade maior).
+# As rotas publicas (/api/v1/auth/*, /api/v1/invitations/redeem, /.well-known/jwks.json)
+# sao servidas pelo Ingress ms-administrative-core-public (regex, prioridade maior).
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -23,10 +23,11 @@ spec:
             port:
               number: 80
 ---
-# Rotas publicas (sem JWT): login/refresh/logout e a chave publica JWKS.
+# Rotas publicas (sem JWT): login/refresh/logout, redeem de convite e a chave JWKS.
+# (redeem = registro de funcionario que ainda nao tem conta/token.)
 # A regex casa e remove apenas o prefixo /qa/administrative (lookahead nao consome),
-# entao o backend recebe /api/v1/auth/... e /.well-known/jwks.json intactos.
-# api-key-auth mantem o gate de "app conhecido"; auth-rate-limit protege o login.
+# entao o backend recebe /api/v1/... intacto.
+# api-key-auth mantem o gate de "app conhecido"; auth-rate-limit protege login/redeem.
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -42,7 +43,7 @@ spec:
   rules:
   - http:
       paths:
-      - path: /~/qa/administrative(?=/(api/v1/auth|\.well-known/jwks\.json))
+      - path: /~/qa/administrative(?=/(api/v1/auth|api/v1/invitations/redeem|\.well-known/jwks\.json))
         pathType: ImplementationSpecific
         backend:
           service:
