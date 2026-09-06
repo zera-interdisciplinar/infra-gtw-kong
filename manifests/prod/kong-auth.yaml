@@ -19,3 +19,36 @@ metadata:
 username: mobile-app-prod
 credentials:
   - mobile-app-key-auth-secret
+---
+apiVersion: configuration.konghq.com/v1
+kind: KongConsumer
+metadata:
+  name: inventory-consumer
+  namespace: production
+  annotations:
+    kubernetes.io/ingress.class: kong
+username: inventory-prod
+credentials:
+  - inventory-key-auth-secret
+---
+apiVersion: configuration.konghq.com/v1
+kind: KongConsumer
+metadata:
+  name: predictor-consumer
+  namespace: production
+  annotations:
+    kubernetes.io/ingress.class: kong
+username: predictor-prod
+credentials:
+  - predictor-key-auth-secret
+---
+apiVersion: configuration.konghq.com/v1
+kind: KongConsumer
+metadata:
+  name: admin-core-consumer
+  namespace: production
+  annotations:
+    kubernetes.io/ingress.class: kong
+username: admin-core-prod
+credentials:
+  - admin-core-key-auth-secret
