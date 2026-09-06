@@ -19,3 +19,36 @@ metadata:
 username: mobile-app-qa
 credentials:
   - mobile-app-key-auth-secret
+---
+apiVersion: configuration.konghq.com/v1
+kind: KongConsumer
+metadata:
+  name: inventory-consumer
+  namespace: qa
+  annotations:
+    kubernetes.io/ingress.class: kong
+username: inventory-qa
+credentials:
+  - inventory-key-auth-secret
+---
+apiVersion: configuration.konghq.com/v1
+kind: KongConsumer
+metadata:
+  name: predictor-consumer
+  namespace: qa
+  annotations:
+    kubernetes.io/ingress.class: kong
+username: predictor-qa
+credentials:
+  - predictor-key-auth-secret
+---
+apiVersion: configuration.konghq.com/v1
+kind: KongConsumer
+metadata:
+  name: admin-core-consumer
+  namespace: qa
+  annotations:
+    kubernetes.io/ingress.class: kong
+username: admin-core-qa
+credentials:
+  - admin-core-key-auth-secret
