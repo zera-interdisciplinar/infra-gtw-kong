@@ -30,20 +30,25 @@ O KIC 3.x identifica o tipo da credencial pelo label `konghq.com/credential=jwt`
 # QA
 kubectl create secret generic administrative-core-jwt-qa -n qa \
   --from-literal=algorithm=RS256 \
-  --from-literal=key=ms-administrative-core \
+  --from-literal=key=ms-administrative-core-qa \
   --from-file=rsa_public_key=jwt-public.pem
 kubectl label secret administrative-core-jwt-qa -n qa konghq.com/credential=jwt
 
 # Produção
 kubectl create secret generic administrative-core-jwt-prod -n production \
   --from-literal=algorithm=RS256 \
-  --from-literal=key=ms-administrative-core \
+  --from-literal=key=ms-administrative-core-prod \
   --from-file=rsa_public_key=jwt-public.pem
 kubectl label secret administrative-core-jwt-prod -n production konghq.com/credential=jwt
 ```
 
 `key` **precisa** ser igual ao claim `iss` do token (`zera.jwt.issuer` no
-ms-administrative-core, hoje `ms-administrative-core`).
+ms-administrative-core, hoje `ms-administrative-core-qa`/`ms-administrative-core-prod`).
+
+QA e produção rodam na **mesma instância Kong**, e a credencial JWT do Kong exige
+`key` único no gateway inteiro (não por namespace) — por isso `key` leva o sufixo
+do ambiente. Usar o mesmo valor nos dois quebra o apply com
+`unique key constraint violated for key`.
 
 Rotação da chave: atualize este Secret e o `ms-administrative-core-jwt` no mesmo
 momento, depois `kubectl rollout restart` do ms-administrative-core.
