@@ -8,7 +8,7 @@ metadata:
   namespace: qa
   annotations:
     kubernetes.io/ingress.class: "kong"
-    konghq.com/plugins: "jwt-auth"
+    konghq.com/plugins: "jwt-auth,api-key-auth"
     konghq.com/strip-path: "true"
 spec:
   ingressClassName: kong
