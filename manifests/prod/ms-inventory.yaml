@@ -15,7 +15,7 @@ metadata:
   namespace: production
   annotations:
     kubernetes.io/ingress.class: "kong"
-    konghq.com/plugins: "api-key-auth,ms-inventory-path-rewrite"
+    konghq.com/plugins: "jwt-auth,ms-inventory-path-rewrite"
     konghq.com/strip-path: "true"
 spec:
   ingressClassName: kong
