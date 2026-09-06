@@ -1,3 +1,5 @@
+# Duas rotas separadas: /mcp (chamada interna do ms-artificial-intelligence-core,
+# so apikey) e a API de usuario (/api/v1/..., JWT), sem uma sobrescrever o path da outra.
 apiVersion: configuration.konghq.com/v1
 kind: KongPlugin
 metadata:
@@ -11,11 +13,33 @@ config:
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
+  name: ms-inventory-mcp-ingress-qa
+  namespace: qa
+  annotations:
+    kubernetes.io/ingress.class: "kong"
+    konghq.com/plugins: "ms-inventory-path-rewrite,api-key-auth"
+    konghq.com/strip-path: "true"
+spec:
+  ingressClassName: kong
+  rules:
+  - http:
+      paths:
+      - path: /qa/inventory/mcp
+        pathType: Prefix
+        backend:
+          service:
+            name: ms-inventory
+            port:
+              number: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
   name: ms-inventory-ingress-qa
   namespace: qa
   annotations:
     kubernetes.io/ingress.class: "kong"
-    konghq.com/plugins: "jwt-auth,ms-inventory-path-rewrite,api-key-auth"
+    konghq.com/plugins: "jwt-auth,api-key-auth"
     konghq.com/strip-path: "true"
 spec:
   ingressClassName: kong
