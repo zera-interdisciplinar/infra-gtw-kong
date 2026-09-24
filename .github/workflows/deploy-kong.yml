@@ -22,12 +22,12 @@ jobs:
       - id: auth
         uses: google-github-actions/auth@v2
         with:
-          workload_identity_provider: projects/203414779599/locations/global/workloadIdentityPools/zera-pool/providers/github-provider
-          service_account: github-actions-deploy@zera-506513.iam.gserviceaccount.com
+          workload_identity_provider: projects/366904660850/locations/global/workloadIdentityPools/zera-pool/providers/github-provider
+          service_account: github-actions-deploy@zera-509513.iam.gserviceaccount.com
 
       - uses: google-github-actions/get-gke-credentials@v2
         with:
-          cluster_name: zera
+          cluster_name: zera-cluster
           location: southamerica-east1
 
       - name: Setup Helm
