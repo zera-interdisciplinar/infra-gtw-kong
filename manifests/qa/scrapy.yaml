@@ -1,0 +1,32 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: scrapy-ingress-qa
+  namespace: qa
+  annotations:
+    kubernetes.io/ingress.class: "kong"
+    konghq.com/plugins: "api-key-auth"
+    konghq.com/strip-path: "true"
+spec:
+  ingressClassName: kong
+  rules:
+  - http:
+      paths:
+      - path: /qa/scrapy
+        pathType: Prefix
+        backend:
+          service:
+            name: scrapy
+            port:
+              number: 80
+---
+apiVersion: configuration.konghq.com/v1
+kind: KongConsumer
+metadata:
+  name: scrapy-consumer
+  namespace: qa
+  annotations:
+    kubernetes.io/ingress.class: kong
+username: scrapy-qa
+credentials:
+  - scrapy-key-auth-secret
