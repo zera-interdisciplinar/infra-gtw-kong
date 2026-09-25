@@ -1,3 +1,51 @@
+# Rotas dos SDKs/app mobile (internal/api/api.go: sdk.GET bootstrap/connect,
+# r.POST boot/flags) sao as unicas que o scrapy exige apikey — sao publicas por design
+# (chave embutida no client), so key-auth aqui.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: scrapy-ingress-qa-apikey
+  namespace: qa
+  annotations:
+    kubernetes.io/ingress.class: "kong"
+    konghq.com/plugins: "api-key-auth"
+    konghq.com/strip-path: "true"
+spec:
+  ingressClassName: kong
+  rules:
+  - http:
+      paths:
+      - path: /qa/scrapy/v1/bootstrap
+        pathType: Prefix
+        backend:
+          service:
+            name: scrapy
+            port:
+              number: 80
+      - path: /qa/scrapy/v1/connect
+        pathType: Prefix
+        backend:
+          service:
+            name: scrapy
+            port:
+              number: 80
+      - path: /qa/scrapy/v1/boot
+        pathType: Prefix
+        backend:
+          service:
+            name: scrapy
+            port:
+              number: 80
+      - path: /qa/scrapy/v1/flags
+        pathType: Prefix
+        backend:
+          service:
+            name: scrapy
+            port:
+              number: 80
+---
+# Restante (UI, login, /v1/admin/*) usa sessao propria do scrapy (cookie httpOnly) —
+# sem api-key-auth aqui, senao ninguem abre o site sem uma apikey de mobile.
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -5,7 +53,6 @@ metadata:
   namespace: qa
   annotations:
     kubernetes.io/ingress.class: "kong"
-    konghq.com/plugins: "api-key-auth"
     konghq.com/strip-path: "true"
 spec:
   ingressClassName: kong
