@@ -10,6 +10,11 @@ metadata:
     kubernetes.io/ingress.class: "kong"
     konghq.com/plugins: "api-key-auth"
     konghq.com/strip-path: "true"
+    # Sem isso, esta ingress e a scrapy-ingress-qa (prefix "/qa/scrapy" cobre estes
+    # mesmos subpaths) empatam e o Kong pode escolher a rota generica pra
+    # /qa/scrapy/v1/boot|flags — key-auth nao roda e o cliente mobile recebe a UI
+    # (HTML) no lugar do JSON do boot/flags. Prioridade explicita, maior sempre vence.
+    konghq.com/regex-priority: "100"
 spec:
   ingressClassName: kong
   rules:
