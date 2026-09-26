@@ -1,20 +1,105 @@
 # Rotas dos SDKs/app mobile (internal/api/api.go: sdk.GET bootstrap/connect,
 # r.POST boot/flags) sao as unicas que o scrapy exige apikey — sao publicas por design
 # (chave embutida no client), so key-auth aqui.
+#
+# strip-path aqui remove o path INTEIRO configurado na regra (ex: "/qa/scrapy/v1/boot"),
+# nao so o prefixo "/qa/scrapy" — o backend recebia "/" (raiz) em vez de "/v1/boot" e caia
+# no fallback que serve a UI (HTML), quebrando o cliente mobile que espera JSON. Cada
+# subpath aqui tem sua propria Ingress + KongPlugin request-transformer reescrevendo o uri
+# pro path exato que o backend espera, mesmo padrao ja usado em ms-inventory-mcp-ingress-qa.
+apiVersion: configuration.konghq.com/v1
+kind: KongPlugin
+metadata:
+  name: scrapy-rewrite-boot
+  namespace: qa
+plugin: request-transformer
+config:
+  replace:
+    uri: /v1/boot
+---
+apiVersion: configuration.konghq.com/v1
+kind: KongPlugin
+metadata:
+  name: scrapy-rewrite-flags
+  namespace: qa
+plugin: request-transformer
+config:
+  replace:
+    uri: /v1/flags
+---
+apiVersion: configuration.konghq.com/v1
+kind: KongPlugin
+metadata:
+  name: scrapy-rewrite-bootstrap
+  namespace: qa
+plugin: request-transformer
+config:
+  replace:
+    uri: /v1/bootstrap
+---
+apiVersion: configuration.konghq.com/v1
+kind: KongPlugin
+metadata:
+  name: scrapy-rewrite-connect
+  namespace: qa
+plugin: request-transformer
+config:
+  replace:
+    uri: /v1/connect
+---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: scrapy-ingress-qa-apikey
+  name: scrapy-ingress-qa-boot
   namespace: qa
   annotations:
     kubernetes.io/ingress.class: "kong"
-    konghq.com/plugins: "api-key-auth"
+    konghq.com/plugins: "scrapy-rewrite-boot,api-key-auth"
     konghq.com/strip-path: "true"
-    # Sem isso, esta ingress e a scrapy-ingress-qa (prefix "/qa/scrapy" cobre estes
-    # mesmos subpaths) empatam e o Kong pode escolher a rota generica pra
-    # /qa/scrapy/v1/boot|flags — key-auth nao roda e o cliente mobile recebe a UI
-    # (HTML) no lugar do JSON do boot/flags. Prioridade explicita, maior sempre vence.
-    konghq.com/regex-priority: "100"
+spec:
+  ingressClassName: kong
+  rules:
+  - http:
+      paths:
+      - path: /qa/scrapy/v1/boot
+        pathType: Prefix
+        backend:
+          service:
+            name: scrapy
+            port:
+              number: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: scrapy-ingress-qa-flags
+  namespace: qa
+  annotations:
+    kubernetes.io/ingress.class: "kong"
+    konghq.com/plugins: "scrapy-rewrite-flags,api-key-auth"
+    konghq.com/strip-path: "true"
+spec:
+  ingressClassName: kong
+  rules:
+  - http:
+      paths:
+      - path: /qa/scrapy/v1/flags
+        pathType: Prefix
+        backend:
+          service:
+            name: scrapy
+            port:
+              number: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: scrapy-ingress-qa-bootstrap
+  namespace: qa
+  annotations:
+    kubernetes.io/ingress.class: "kong"
+    konghq.com/plugins: "scrapy-rewrite-bootstrap,api-key-auth"
+    konghq.com/strip-path: "true"
 spec:
   ingressClassName: kong
   rules:
@@ -27,21 +112,22 @@ spec:
             name: scrapy
             port:
               number: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: scrapy-ingress-qa-connect
+  namespace: qa
+  annotations:
+    kubernetes.io/ingress.class: "kong"
+    konghq.com/plugins: "scrapy-rewrite-connect,api-key-auth"
+    konghq.com/strip-path: "true"
+spec:
+  ingressClassName: kong
+  rules:
+  - http:
+      paths:
       - path: /qa/scrapy/v1/connect
-        pathType: Prefix
-        backend:
-          service:
-            name: scrapy
-            port:
-              number: 80
-      - path: /qa/scrapy/v1/boot
-        pathType: Prefix
-        backend:
-          service:
-            name: scrapy
-            port:
-              number: 80
-      - path: /qa/scrapy/v1/flags
         pathType: Prefix
         backend:
           service:
@@ -50,7 +136,9 @@ spec:
               number: 80
 ---
 # Restante (UI, login, /v1/admin/*) usa sessao propria do scrapy (cookie httpOnly) —
-# sem api-key-auth aqui, senao ninguem abre o site sem uma apikey de mobile.
+# sem api-key-auth aqui, senao ninguem abre o site sem uma apikey de mobile. strip-path
+# aqui strip so "/qa/scrapy" (o path configurado), o resto do path chega intacto no
+# backend — funciona porque o path configurado e so o prefixo comum, sem subpath.
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
