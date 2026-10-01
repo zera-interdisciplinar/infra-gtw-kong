@@ -1,3 +1,9 @@
+# Sem api-key-auth de proposito: doc do swagger fica publica em QA para facilitar
+# consulta, enquanto as rotas de API de verdade continuam exigindo a chave
+# (ver ms-inventory-ingress-qa). Nao exponha essa rota assim em prod.
+# O path e /api-docs, nao /v3: o ms-inventory sobrescreve
+# springdoc.api-docs.path=/api-docs no application.properties, entao o spec
+# nao fica em /v3/api-docs (padrao do springdoc) e esse prefixo nunca bateria.
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -5,7 +11,6 @@ metadata:
   namespace: qa
   annotations:
     kubernetes.io/ingress.class: "kong"
-    konghq.com/plugins: "api-key-auth"
     konghq.com/strip-path: "true"
 spec:
   ingressClassName: kong
@@ -19,7 +24,7 @@ spec:
             name: ms-inventory
             port:
               number: 80
-      - path: /qa/inventory/v3
+      - path: /qa/inventory/api-docs
         pathType: Prefix
         backend:
           service:
