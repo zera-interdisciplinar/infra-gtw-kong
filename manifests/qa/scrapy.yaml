@@ -58,6 +58,10 @@ metadata:
     konghq.com/strip-path: "true"
 spec:
   ingressClassName: kong
+  tls:
+    - hosts:
+        - api.zera.com
+      secretName: gateway-tls
   rules:
   - http:
       paths:
@@ -80,6 +84,10 @@ metadata:
     konghq.com/strip-path: "true"
 spec:
   ingressClassName: kong
+  tls:
+    - hosts:
+        - api.zera.com
+      secretName: gateway-tls
   rules:
   - http:
       paths:
@@ -102,6 +110,10 @@ metadata:
     konghq.com/strip-path: "true"
 spec:
   ingressClassName: kong
+  tls:
+    - hosts:
+        - api.zera.com
+      secretName: gateway-tls
   rules:
   - http:
       paths:
@@ -124,6 +136,10 @@ metadata:
     konghq.com/strip-path: "true"
 spec:
   ingressClassName: kong
+  tls:
+    - hosts:
+        - api.zera.com
+      secretName: gateway-tls
   rules:
   - http:
       paths:
@@ -149,6 +165,10 @@ metadata:
     konghq.com/strip-path: "true"
 spec:
   ingressClassName: kong
+  tls:
+    - hosts:
+        - api.zera.com
+      secretName: gateway-tls
   rules:
   - http:
       paths:
