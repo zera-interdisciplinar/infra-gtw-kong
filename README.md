@@ -64,3 +64,19 @@ momento, depois `kubectl rollout restart` do ms-administrative-core.
 Testar em QA primeiro: o Ingress `ms-administrative-core-public-*` usa uma rota
 **regex com lookahead** para remover só o prefixo e deixar `/api/v1/auth/...` chegar
 ao backend — validar com uma chamada real de login antes de aplicar em produção.
+
+## Proteção de borda (não é firewall de VPC)
+
+O LoadBalancer do Kong é **público em 80/443**. O admin do Kong escuta só em `127.0.0.1`.
+Não dá para fechar a origem por IP: ChatGPT/Claude saem de ranges que mudam.
+
+Já existia: `apikey` / JWT nas APIs e `auth-rate-limit` (20/min) no login.
+
+`manifests/qa/gateway-protection.yaml` aplica no **gateway inteiro** (`KongClusterPlugin`):
+
+| Plugin | Teto |
+| --- | --- |
+| `gateway-rate-limit` | 120 req/min e 3000/h por IP (`policy: local`) |
+| `gateway-request-size-limit` | body até 4 MB |
+
+Isso corta flood e payload gigante. Não substitui Cloud Armor (WAF L7) — o LB atual é do tipo Network/External, Armor entra se um dia o proxy for um HTTP(S) Load Balancer.

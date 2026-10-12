@@ -1,0 +1,35 @@
+# Protecao de borda no gateway inteiro (Kong OSS). Nao substitui Cloud Armor:
+# o LoadBalancer do proxy continua publico em 80/443. IP allowlist quebraria
+# ChatGPT/Claude (IPs da nuvem deles mudam).
+#
+# label global=true: KongClusterPlugin aplica a todas as rotas do controller.
+# Login continua com o teto mais baixo auth-rate-limit (20/min) nas rotas /auth.
+apiVersion: configuration.konghq.com/v1
+kind: KongClusterPlugin
+metadata:
+  name: gateway-rate-limit
+  annotations:
+    kubernetes.io/ingress.class: kong
+  labels:
+    global: "true"
+plugin: rate-limiting
+config:
+  minute: 120
+  hour: 3000
+  policy: local
+  fault_tolerant: true
+  hide_client_headers: true
+---
+apiVersion: configuration.konghq.com/v1
+kind: KongClusterPlugin
+metadata:
+  name: gateway-request-size-limit
+  annotations:
+    kubernetes.io/ingress.class: kong
+  labels:
+    global: "true"
+plugin: request-size-limiting
+config:
+  allowed_payload_size: 4
+  size_unit: megabytes
+  require_content_length: false

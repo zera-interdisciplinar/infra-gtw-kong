@@ -11,7 +11,7 @@ spec:
   ingressClassName: kong
   tls:
     - hosts:
-        - api.zera.com
+        - www.zeratech.online
       secretName: gateway-tls
   rules:
   - http:
