@@ -1,0 +1,31 @@
+# Dashboard SSE do ms-analytics-bff. Mesmos plugins das APIs de usuario
+# (JWT RS256 + apikey). strip-path remove /analytics e o backend recebe
+# /api/v1/... e /health intactos.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ms-analytics-bff-ingress-prod
+  namespace: production
+  annotations:
+    kubernetes.io/ingress.class: "kong"
+    konghq.com/plugins: "jwt-auth,api-key-auth"
+    konghq.com/strip-path: "true"
+    konghq.com/read-timeout: "3600000"
+    konghq.com/write-timeout: "3600000"
+    konghq.com/response-buffering: "false"
+spec:
+  ingressClassName: kong
+  tls:
+    - hosts:
+        - www.zeratech.online
+      secretName: gateway-tls
+  rules:
+  - http:
+      paths:
+      - path: /analytics
+        pathType: Prefix
+        backend:
+          service:
+            name: ms-analytics-bff
+            port:
+              number: 80
