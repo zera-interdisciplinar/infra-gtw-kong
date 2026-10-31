@@ -106,14 +106,8 @@ spec:
             name: scrapy
             port:
               number: 80
----
-apiVersion: configuration.konghq.com/v1
-kind: KongConsumer
-metadata:
-  name: scrapy-consumer
-  namespace: production
-  annotations:
-    kubernetes.io/ingress.class: kong
-username: scrapy-prod
-credentials:
-  - scrapy-key-auth-secret
+# Sem KongConsumer aqui: QA e prod compartilham a mesma instancia Kong, e
+# key-auth exige `key` unico no gateway. O secret scrapy-key-auth-secret de
+# production tem a mesma chave do de QA, entao o apply de prod falhava com
+# "unique key constraint violated for key". As rotas mobile nao usam mais
+# api-key-auth; o Scrapy valida o header sozinho.
