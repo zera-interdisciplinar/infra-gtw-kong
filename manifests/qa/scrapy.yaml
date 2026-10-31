@@ -1,6 +1,7 @@
-# Rotas dos SDKs/app mobile (internal/api/api.go: sdk.GET bootstrap/connect,
-# r.POST boot/flags) sao as unicas que o scrapy exige apikey — sao publicas por design
-# (chave embutida no client), so key-auth aqui.
+# Rotas do app mobile (POST /v1/boot e /v1/flags). O Scrapy valida o header
+# `apikey` contra api_keys do proprio banco (keys sk_ geradas no admin).
+# NAO usar o plugin Kong api-key-auth aqui: ele so aceita o secret
+# scrapy-key-auth-secret e rejeita qualquer key mintada no admin.
 #
 # strip-path aqui remove o path INTEIRO configurado na regra (ex: "/qa/scrapy/v1/boot"),
 # nao so o prefixo "/qa/scrapy" — o backend recebia "/" (raiz) em vez de "/v1/boot" e caia
@@ -54,7 +55,7 @@ metadata:
   namespace: qa
   annotations:
     kubernetes.io/ingress.class: "kong"
-    konghq.com/plugins: "scrapy-rewrite-boot,api-key-auth"
+    konghq.com/plugins: "scrapy-rewrite-boot"
     konghq.com/strip-path: "true"
 spec:
   ingressClassName: kong
@@ -80,7 +81,7 @@ metadata:
   namespace: qa
   annotations:
     kubernetes.io/ingress.class: "kong"
-    konghq.com/plugins: "scrapy-rewrite-flags,api-key-auth"
+    konghq.com/plugins: "scrapy-rewrite-flags"
     konghq.com/strip-path: "true"
 spec:
   ingressClassName: kong
