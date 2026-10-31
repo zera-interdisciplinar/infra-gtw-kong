@@ -1,0 +1,117 @@
+# Rotas do app mobile (POST /v1/boot e /v1/flags) sao as unicas que o scrapy
+# exige apikey — publicas por design (chave no client), so key-auth aqui.
+#
+# strip-path remove o path INTEIRO da regra (ex: "/scrapy/v1/boot"), nao so o
+# prefixo "/scrapy" — o backend receberia "/" e cairia na UI (HTML). Cada
+# subpath tem Ingress + request-transformer reescrevendo o uri, mesmo padrao
+# de manifests/qa/scrapy.yaml e do ms-inventory MCP.
+apiVersion: configuration.konghq.com/v1
+kind: KongPlugin
+metadata:
+  name: scrapy-rewrite-boot
+  namespace: production
+plugin: request-transformer
+config:
+  replace:
+    uri: /v1/boot
+---
+apiVersion: configuration.konghq.com/v1
+kind: KongPlugin
+metadata:
+  name: scrapy-rewrite-flags
+  namespace: production
+plugin: request-transformer
+config:
+  replace:
+    uri: /v1/flags
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: scrapy-ingress-prod-boot
+  namespace: production
+  annotations:
+    kubernetes.io/ingress.class: "kong"
+    konghq.com/plugins: "scrapy-rewrite-boot,api-key-auth"
+    konghq.com/strip-path: "true"
+spec:
+  ingressClassName: kong
+  tls:
+    - hosts:
+        - www.zeratech.online
+      secretName: gateway-tls
+  rules:
+  - http:
+      paths:
+      - path: /scrapy/v1/boot
+        pathType: Prefix
+        backend:
+          service:
+            name: scrapy
+            port:
+              number: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: scrapy-ingress-prod-flags
+  namespace: production
+  annotations:
+    kubernetes.io/ingress.class: "kong"
+    konghq.com/plugins: "scrapy-rewrite-flags,api-key-auth"
+    konghq.com/strip-path: "true"
+spec:
+  ingressClassName: kong
+  tls:
+    - hosts:
+        - www.zeratech.online
+      secretName: gateway-tls
+  rules:
+  - http:
+      paths:
+      - path: /scrapy/v1/flags
+        pathType: Prefix
+        backend:
+          service:
+            name: scrapy
+            port:
+              number: 80
+---
+# Restante (UI, login, /v1/admin/*) usa sessao propria do scrapy (cookie httpOnly) —
+# sem api-key-auth, senao ninguem abre o site sem apikey de mobile. strip-path
+# remove so "/scrapy"; o resto do path chega intacto no backend.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: scrapy-ingress-prod
+  namespace: production
+  annotations:
+    kubernetes.io/ingress.class: "kong"
+    konghq.com/strip-path: "true"
+spec:
+  ingressClassName: kong
+  tls:
+    - hosts:
+        - www.zeratech.online
+      secretName: gateway-tls
+  rules:
+  - http:
+      paths:
+      - path: /scrapy
+        pathType: Prefix
+        backend:
+          service:
+            name: scrapy
+            port:
+              number: 80
+---
+apiVersion: configuration.konghq.com/v1
+kind: KongConsumer
+metadata:
+  name: scrapy-consumer
+  namespace: production
+  annotations:
+    kubernetes.io/ingress.class: kong
+username: scrapy-prod
+credentials:
+  - scrapy-key-auth-secret
