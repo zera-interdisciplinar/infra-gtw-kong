@@ -80,3 +80,19 @@ Já existia: `apikey` / JWT nas APIs e `auth-rate-limit` (20/min) no login.
 | `gateway-request-size-limit` | body até 4 MB |
 
 Isso corta flood e payload gigante. Não substitui Cloud Armor (WAF L7) — o LB atual é do tipo Network/External, Armor entra se um dia o proxy for um HTTP(S) Load Balancer.
+
+
+## Rotas do painel web
+
+| Ambiente | Host | Namespace | Backend |
+|---|---|---|---|
+| QA | `qa.zeratech.online` | `qa` | `zera-web-app:80` |
+| Producao | `gestao.zeratech.online` | `production` | `zera-web-app:80` |
+
+Os Ingresses usam host explicito e encaminham o caminho completo. Assim, `/login`, as rotas da SPA e `/api/*` chegam ao servidor do web, que serve os arquivos e executa o proxy allowlist na mesma origem. A chave do gateway fica no Secret do workload e o JWT continua sendo validado nas APIs; nao aplicar `jwt-auth`/`api-key-auth` ao HTML de login. O buffering de resposta fica desativado para preservar o SSE do dashboard. Timeouts de leitura/escrita pertencem ao Service do web, mantido no repositorio `zera-web-app`.
+
+A raiz de `www.zeratech.online` e as rotas existentes das APIs permanecem com seus backends. Os novos hosts nao criam uma rota generica para outros dominios.
+
+Antes de disponibilizar cada host, conferir o DNS para o LoadBalancer do Kong, o Secret TLS `gateway-tls` no namespace correspondente (certificado deve cobrir o host) e o Service com endpoints saudaveis. A origem exige HTTPS e redireciona HTTP com 308; o proxy do Cloudflare deve usar HTTPS na origem, com validacao do certificado. Esta mudanca segue a convencao TLS do repositorio e nao provisiona certificados nem altera DNS.
+
+O web de QA ja possui workload. Em producao, o Ingress fica preparado para a primeira Release do app: criar a rota nao inicia Deployments nem bancos. O workflow existente e o ArgoCD aplicam os arquivos de `manifests/qa` e `manifests/prod` conforme o fluxo atual da infraestrutura; esta mudanca nao troca branches de GitOps nem os gatilhos de deploy dos aplicativos.

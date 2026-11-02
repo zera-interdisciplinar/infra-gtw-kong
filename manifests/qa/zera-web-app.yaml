@@ -1,0 +1,30 @@
+# O frontend serve login e SPA; autenticacao das APIs continua no proxy e nos servicos.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: zera-web-app-ingress-qa
+  namespace: qa
+  annotations:
+    kubernetes.io/ingress.class: "kong"
+    konghq.com/strip-path: "false"
+    konghq.com/preserve-host: "true"
+    konghq.com/protocols: "https"
+    konghq.com/https-redirect-status-code: "308"
+    konghq.com/response-buffering: "false"
+spec:
+  ingressClassName: kong
+  tls:
+    - hosts:
+        - qa.zeratech.online
+      secretName: gateway-tls
+  rules:
+    - host: qa.zeratech.online
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: zera-web-app
+                port:
+                  number: 80
